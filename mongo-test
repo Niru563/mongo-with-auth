@@ -1,0 +1,94 @@
+version: '3.7'
+services:
+  database:
+    image: mongo
+    container_name : your-cont-name
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_DATABASE=my_db
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    ports:
+      - '27017-27019:27017-27019'
+    volumes: 
+      - mongodbdata:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      
+volumes:
+  mongodbdata:
+    driver: local
+
+
+
+
+
+db.createUser(
+    {
+        user: "your_user",
+        pwd: "your_password",
+        roles: [
+            {
+                role: "readWrite",
+                db: "my_db"
+            }
+        ]
+    }
+);
+db.createCollection("test"); //MongoDB creates the database when you first store data in that database
+
+
+
+
+After some time, I figured out.
+
+On the same folder, create docker-compose.yml and init-mongo.js
+docker-compose.yml
+
+version: '3.7'
+services:
+  database:
+    image: mongo
+    container_name : your-cont-name
+    command: mongod --auth
+    environment:
+      - MONGO_INITDB_DATABASE=my_db
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    ports:
+      - '27017-27019:27017-27019'
+    volumes: 
+      - mongodbdata:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      
+volumes:
+  mongodbdata:
+    driver: local
+init-mongo.js
+
+db.createUser(
+    {
+        user: "your_user",
+        pwd: "your_password",
+        roles: [
+            {
+                role: "readWrite",
+                db: "my_db"
+            }
+        ]
+    }
+);
+db.createCollection("test"); //MongoDB creates the database when you first store data in that database
+Auth
+
+First, execute the bash inside the container
+
+docker exec -it your-cont-name bash
+Now we can login. For the admin
+
+mongo -u admin -p root
+For the your_user you have to specify the db (with the --authenticationDatabase) otherwise you'll have an auth error
+
+mongo -u your_user -p your_password --authenticationDatabase my_db
+After that, you should switch to the right db with
+
+use my_db
